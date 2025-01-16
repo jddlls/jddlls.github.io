@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Against Humanity</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Space Grotesk", serif;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 960px;
+            height: 540px;
+            margin: 0;
+            padding: 20px;
+            background-image: url('inside.jpg'); /* Add your background image here */
+            background-size: cover;
+            background-position: center;
+            border: 2px solid #ccc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .question-container {
+            background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent white background */
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%; /* Adjust width as needed */
+            max-width: 700px;
+            margin: auto;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .question {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .options button {
+            padding: 10px;
+            margin: 5px;
+            width: 200px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .option.correct {
+            background-color: green;
+            color: white;
+        }
+
+        .option.incorrect {
+            background-color: red;
+            color: white;
+        }
+
+        .result button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #cc0000;
+            color: white;
+            border: none;
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        .youtube-video {
+            display: none;
+            width: 560px;
+            height: 315px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        a.learn-more-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #cc0000;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-family: "Space Grotesk", serif;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: background-color 0.3s ease; /* Smooth hover transition */
+        }
+
+        a.learn-more-btn:hover {
+            background-color: #850303; /* Hover color */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="question-container">
+            <h1>Knowledge Check</h1>
+
+            <!-- Question 1 -->
+            <div class="question" id="question1">
+                <p>Generative AI can create untrue and misleading content.</p>
+                <div class="options">
+                    <button class="option" onclick="checkAnswer(this, true)">True</button>
+                    <button class="option" onclick="checkAnswer(this, false)">False</button>
+                    <button class="option" onclick="checkAnswer(this, false)">Maybe</button>
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="question" id="question2">
+                <p>Deepfakes can...</p>
+                <div class="options">
+                    <button class="option" onclick="checkAnswer(this, false)">dig out your personal information.</button>
+                    <button class="option" onclick="checkAnswer(this, true)">convince people that they're seeing, watching or hearing someone do or say something they never did or said.</button>
+                    <button class="option" onclick="checkAnswer(this, false)">help to spread true information to the public.</button>
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="question" id="question3">
+                <p>AI Chatbots can...</p>
+                <div class="options">
+                    <button class="option" onclick="checkAnswer(this, false)">act as your password manager.</button>
+                    <button class="option" onclick="checkAnswer(this, false)">create videos from existing stock footage online.</button>
+                    <button class="option" onclick="checkAnswer(this, true)">simulate human conversation.</button>
+                </div>
+            </div>
+
+            <!-- Result -->
+            <div class="result" id="result" style="display:none;">
+                <button onclick="showResult()">Continue</button>
+            </div>
+
+        </div>
+
+        <!-- YouTube Video -->
+        <div class="youtube-video" id="youtube-video">
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/j9K9MFEUZp0?si=zg66iwNNKoqkl_Ws" frameborder="0" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestion = 1;
+        let answers = [];
+        let timeout;
+
+        // Function to show the current question and hide others
+        function showQuestion(questionNumber) {
+            const question = document.getElementById(`question${questionNumber}`);
+            question.style.display = 'block';
+        }
+
+        function hideQuestion(questionNumber) {
+            const question = document.getElementById(`question${questionNumber}`);
+            question.style.display = 'none';
+        }
+
+        // Show the first question on page load
+        showQuestion(currentQuestion);
+
+        // Function to check if the answer is correct or not
+        function checkAnswer(button, correct) {
+            if (correct) {
+                button.classList.add('correct');
+            } else {
+                button.classList.add('incorrect');
+            }
+
+            // Disable all options for the question
+            let buttons = button.parentElement.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true);
+
+            answers.push(correct);
+
+            // Move to the next question after a 2-second delay
+            timeout = setTimeout(function() {
+                currentQuestion++;
+                if (currentQuestion <= 3) {
+                    hideQuestion(currentQuestion - 1);
+                    showQuestion(currentQuestion);
+                } else {
+                    document.getElementById('result').style.display = 'block';
+                }
+            }, 2000); // Delay of 2 seconds before moving to the next question
+        }
+
+        // Function to show the result and the YouTube video
+        function showResult() {
+            let correctAnswers = answers.filter(answer => answer === true).length;
+            alert(`You got ${correctAnswers} out of 3 correct!`);
+
+            // Hide the quiz content and show the YouTube video
+            const questions = document.querySelectorAll('.question');
+            const result = document.getElementById('result');
+            const video = document.getElementById('youtube-video');
+            const questionContainer = document.querySelector('.question-container');
+
+            // Hide all quiz content
+            questions.forEach(question => question.style.display = 'none');
+            result.style.display = 'none';
+
+            // Hide the question container
+            questionContainer.style.display = 'none';
+
+            // Show the YouTube video
+            video.style.display = 'block';
+
+            // Add a button with a link to the bottom-right of the container
+            const container = document.querySelector('.container');
+            const linkButton = document.createElement('a');
+            linkButton.href = "home.html"; // Replace with your desired link
+            linkButton.textContent = "Restart";
+            linkButton.className = "learn-more-btn"; // Apply the class for styling
+
+            // Append the button to the container
+            container.appendChild(linkButton);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Against Humanity</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: Arial, sans-serif;
+            font-family: "Space Grotesk", serif;
+        }
+
+        .container {
+            width: 960px;
+            height: 540px;
+            background-color: black;
+            position: absolute;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .content {
+            text-align: center;
+            color: white;
+        }
+
+        .text-box {
+            font-size: 24px;
+            height: 30px;
+            margin-bottom: 20px;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: 2px solid white;
+        }
+
+        #game-container {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 960px;
+            height: 540px;
+            background-color: rgba(0, 0, 0, 0.5); /* Transparent background */
+        }
+
+        #progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: white; /* Set initial white background */
+            border: 2px solid #fff;
+            position: absolute;
+            top: 0;
+        }
+
+        #progress-fill {
+            height: 100%;
+            background-color: green;
+            width: 0%; /* Start from the left */
+        }
+
+        canvas {
+            background-color: transparent; /* Transparent canvas */
+            border: none;
+            position: absolute;
+            top: 10px;
+        }
+
+        .mission-complete-message {
+            color: white;
+            font-size: 30px;
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #redirect-button {
+            display: none;
+            position: absolute;
+            bottom: 30px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        #redirect-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <div class="content">
+            <div class="text-box" id="text-box"></div>
+        </div>
+        <div id="game-container">
+            <div id="progress-bar">
+                <div id="progress-fill"></div>
+            </div>
+            <canvas id="gameCanvas" width="960" height="540"></canvas>
+        </div>
+        <button id="redirect-button" onclick="redirect()">But first... a knowledge check!</button>
+    </div>
+
+    <script>
+        const container = document.getElementById('container');
+        const textBox = document.getElementById('text-box');
+        const gameContainer = document.getElementById('game-container');
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const progressBar = document.getElementById('progress-fill');
+        const redirectButton = document.getElementById('redirect-button');
+
+        const dino = {
+            x: 50,
+            y: 470,
+            width: 50,
+            height: 50,
+            velocityY: 0,
+            gravity: 1,
+            jumpPower: -15,
+            isJumping: false
+        };
+
+        const obstacles = [];
+        const gameDuration = 25000; // 25 seconds
+        let startTime;
+        let collided = false;
+        let collisionMessage = "";
+
+        const text = "Complete the game to power the spacecraft!";
+        let i = 0;
+
+        function typeText() {
+            if (i < text.length) {
+                textBox.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(typeText, 100);
+            } else {
+                // No further action after text typing
+            }
+        }
+
+        typeText();
+
+        function spawnObstacle() {
+            const size = Math.random() * 20 + 10;
+            obstacles.push({
+                x: 960,
+                y: 470 + (50 - size),
+                width: size,
+                height: size,
+                speed: 3 + Math.random() * 2
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                if (collided) {
+                    resetDino();
+                    collided = false;
+                    collisionMessage = "";
+                } else if (!dino.isJumping) {
+                    dino.velocityY = dino.jumpPower;
+                    dino.isJumping = true;
+                }
+            }
+        });
+
+        // Touch event for mobile to jump
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevents default touch action (like scrolling)
+            if (!dino.isJumping) {
+                dino.velocityY = dino.jumpPower;
+                dino.isJumping = true;
+            }
+        });
+
+        function updateGame() {
+            const currentTime = Date.now();
+            const elapsedTime = currentTime - startTime;
+            const progress = Math.min(100, (elapsedTime / gameDuration) * 100);
+            progressBar.style.width = `${progress}%`;
+
+            if (elapsedTime >= gameDuration) {
+                gameOver();
+                return;
+            }
+
+            if (!collided) {
+                updateDino();
+                updateObstacles();
+            }
+
+            drawGame();
+            requestAnimationFrame(updateGame);
+        }
+
+        function updateDino() {
+            dino.velocityY += dino.gravity;
+            dino.y += dino.velocityY;
+
+            if (dino.y >= 470) {
+                dino.y = 470;
+                dino.isJumping = false;
+            }
+        }
+
+        function updateObstacles() {
+            obstacles.forEach((obstacle, index) => {
+                obstacle.x -= obstacle.speed;
+
+                if (obstacle.x + obstacle.width < 0) {
+                    obstacles.splice(index, 1);
+                    spawnObstacle();
+                }
+
+                if (
+                    dino.x < obstacle.x + obstacle.width &&
+                    dino.x + dino.width > obstacle.x &&
+                    dino.y + dino.height > obstacle.y
+                ) {
+                    collided = true;
+                    collisionMessage = "Oh no, try again! Hold SPACE to respawn.";
+                }
+            });
+
+            if (obstacles.length === 0) spawnObstacle();
+        }
+
+        function drawGame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'green';
+            ctx.fillRect(dino.x, dino.y, dino.width, dino.height);
+
+            obstacles.forEach(obstacle => {
+                ctx.fillStyle = 'red';
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            });
+
+            if (collisionMessage) {
+                ctx.fillStyle = 'white';
+                ctx.font = '20px Arial';
+                ctx.fillText(collisionMessage, 200, 50);
+            }
+        }
+
+        function resetDino() {
+            dino.x = 50;
+            dino.y = 470;
+            dino.velocityY = 0;
+            dino.isJumping = false;
+        }
+
+        function startGame() {
+            startTime = Date.now();
+            collided = false;
+            obstacles.length = 0;
+            spawnObstacle();
+            updateGame();
+        }
+
+        function gameOver() {
+            // Hide the initial text
+            textBox.style.display = 'none';
+
+            // Hide game elements
+            gameContainer.style.display = 'none';
+
+            // Change the container background to black
+            container.style.backgroundColor = 'black';
+
+            // Display mission complete message
+            const message = document.createElement('div');
+            message.className = 'mission-complete-message';
+            message.innerText = "You're now on your way back to space.";
+            container.appendChild(message);
+
+            // Show the redirect button
+            redirectButton.style.display = 'block';
+        }
+
+        function redirect() {
+            window.location.href = "ending.html"; // Replace with your desired URL
+        }
+
+        // Start the game
+        gameContainer.style.display = 'block';
+        startGame();
+    </script>
+</body>
+</html>

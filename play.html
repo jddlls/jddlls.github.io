@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Race Against Humanity</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            height: 100vh;
+            background-color: #000;
+            font-family: "Space Grotesk", serif;
+        }
+
+        #container {
+            width: 960px;
+            height: 540px;
+            position: relative;
+            background: rgba(0, 0, 0, 0.5) url('manfacility.png') no-repeat center center;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .question-box {
+            width: 95%;
+            height: 80%;
+            margin: 10% auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            text-align: center;
+        }
+
+        .question-box img {
+            max-width: 100%;
+            max-height: 40%;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            display: block;
+            width: 80%;
+            margin: 15px auto;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .option.correct {
+            background-color: green;
+        }
+
+        .option.incorrect {
+            background-color: red;
+        }
+
+        .popup {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+        }
+
+        .popup img {
+            max-width: 100%;
+            max-height: 100%;
+            margin-top: 20px;
+        }
+
+        .popup .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
+            background: #000;
+            color: #fff;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        #score-popup {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #proceed-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #cc0000;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        #proceed-button:hover {
+            background: #850303;
+        }
+
+        #score-popup h2 {
+            margin: 0;
+        }
+
+        #score-popup div {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #feedback-popup-1,
+        #feedback-popup-2,
+        #feedback-popup-3 {
+            background: rgba(255, 255, 255, 1);
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <!-- Question 1 -->
+        <div class="question-box" id="question-1">
+            <p>Question 1: Is this a real photograph or is this AI?</p>
+            <img src="picai1.png" alt="Photo1" onclick="openImagePopup('picai1.png')">
+            <div class="option" onclick="handleOption(this, 'Real', 1)">Real</div>
+            <div class="option" onclick="handleOption(this, 'AI', 1)">AI</div>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="question-box" id="question-2" style="display: none;">
+            <p>Question 2: Is this a real photograph or is this AI?</p>
+            <img src="picai2.png" alt="Photo2" onclick="openImagePopup('picai2.png')">
+            <div class="option" onclick="handleOption(this, 'Real', 2)">Real</div>
+            <div class="option" onclick="handleOption(this, 'AI', 2)">AI</div>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="question-box" id="question-3" style="display: none;">
+            <p>Question 3: Is this a real photograph or is this AI?</p>
+            <img src="picai3.png" alt="Photo3" onclick="openImagePopup('picai3.png')">
+            <div class="option" onclick="handleOption(this, 'Real', 3)">Real</div>
+            <div class="option" onclick="handleOption(this, 'AI', 3)">AI</div>
+        </div>
+
+        <!-- Popup for enlarged image -->
+        <div class="popup" id="image-popup">
+            <span class="close" onclick="closeImagePopup()">X</span>
+            <p id="popup-text"></p>
+            <img id="popup-image" src="" alt="">
+        </div>
+
+        <!-- Separate Feedback Popups -->
+        <div class="popup" id="feedback-popup-1">
+            <p>Look at those hands - it's AI!</p>
+            <img id="feedback-image-1" src="picai1.png" alt="Feedback1">
+        </div>
+
+        <div class="popup" id="feedback-popup-2">
+            <p>Do you think you can find this in real life? It's AI!</p>
+            <img id="feedback-image-2" src="picai2.png" alt="Feedback2">
+        </div>
+
+        <div class="popup" id="feedback-popup-3">
+            <p>Look at those hands - it's AI!</p>
+            <img id="feedback-image-3" src="picai3.png" alt="Feedback3">
+        </div>
+
+        <!-- Score Popup -->
+        <div class="popup" id="score-popup">
+            <div>
+                <h2>Your Score: <span id="score"></span>/<span id="total-score"></span></h2>
+                <button id="proceed-button" onclick="window.location.href='lastplay.html'">Get on the spacecraft!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentQuestion = 1;
+        let score = 0;
+        const totalQuestions = 3;
+
+        // Open image popup
+        function openImagePopup(imageSrc) {
+            const popup = document.getElementById('image-popup');
+            const popupImage = document.getElementById('popup-image');
+            popupImage.src = imageSrc;
+            popup.style.display = 'flex';
+        }
+
+        // Close image popup
+        function closeImagePopup() {
+            document.getElementById('image-popup').style.display = 'none';
+        }
+
+        // Function to handle answer selection and show feedback
+        function handleOption(option, answer, questionNumber) {
+            let correctAnswer = '';
+            if (questionNumber === 1) {
+                correctAnswer = 'AI'; // Correct answer for Question 1
+            } else if (questionNumber === 2) {
+                correctAnswer = 'AI'; // Correct answer for Question 2
+            } else if (questionNumber === 3) {
+                correctAnswer = 'AI'; // Correct answer for Question 3
+            }
+
+            if (answer === correctAnswer) {
+                option.classList.add('correct');
+                score++;
+            } else {
+                option.classList.add('incorrect');
+            }
+
+            // Show feedback after 2 seconds
+            setTimeout(() => {
+                showFeedbackPopup(questionNumber);
+            }, 2000);
+        }
+
+        // Function to show the correct feedback popup for the selected question
+        function showFeedbackPopup(questionNumber) {
+            // Hide all feedback popups first
+            document.getElementById('feedback-popup-1').style.display = 'none';
+            document.getElementById('feedback-popup-2').style.display = 'none';
+            document.getElementById('feedback-popup-3').style.display = 'none';
+
+            // Show the specific feedback popup for the current question
+            const feedbackPopup = document.getElementById(`feedback-popup-${questionNumber}`);
+            feedbackPopup.style.display = 'flex';
+
+            // After 5 seconds, hide the feedback popup and move to the next question
+            setTimeout(() => {
+                feedbackPopup.style.display = 'none';
+                goToNextQuestion();
+            }, 5000);
+        }
+
+        // Function to go to the next question
+        function goToNextQuestion() {
+            const currentBox = document.getElementById(`question-${currentQuestion}`);
+            currentBox.style.display = 'none';
+
+            currentQuestion++;
+            const nextBox = document.getElementById(`question-${currentQuestion}`);
+
+            if (nextBox) {
+                nextBox.style.display = 'block';
+            } else {
+                showScorePopup();
+            }
+        }
+
+        // Function to show the score popup after all questions
+        function showScorePopup() {
+            const scorePopup = document.getElementById('score-popup');
+            document.getElementById('score').textContent = score;
+            document.getElementById('total-score').textContent = totalQuestions;
+            scorePopup.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
